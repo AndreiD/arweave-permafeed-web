@@ -16,9 +16,7 @@ Vue.use(VueFlashMessage, {
 window.Event = new Vue(); // global event
 
 // axios config
-axios.defaults.baseURL = 'http://localhost:5555/api';
-axios.defaults.headers.common['Authorization'] = "Token " + localStorage.getItem("token");
-axios.defaults.headers.common['Accept'] = 'application/json';
+axios.defaults.baseURL = 'https://arweave.net';
 
 
 Vue.config.productionTip = false

@@ -52,9 +52,9 @@ export default {
           icon: "fa-home"
         },
         {
-          path: "/faq",
-          title: "FAQ",
-          icon: "fa-question"
+          path: "/add",
+          title: "Add",
+          icon: "fa-plus-circle"
         }
       ],
       right: null
@@ -66,6 +66,14 @@ export default {
 
 
 <style type="text/css">
+.application {
+  font-family: "Roboto", sans-serif;
+}
+.headline,
+.title,
+.subheading {
+  font-family: "Roboto" !important;
+}
 .flash-message {
   display: flex;
   position: fixed;
