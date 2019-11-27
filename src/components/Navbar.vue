@@ -1,8 +1,8 @@
 <template>
   <v-toolbar absolute flat color="black lighten-3" dark>
     <v-toolbar-title>
-      Sqoodle
-      <span class="yellow--text">Admin</span>
+      Arweave
+      <span class="yellow--text">Permafeed HUB</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
 

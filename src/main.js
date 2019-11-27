@@ -24,7 +24,7 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
-  document.title = "Sqoodle Admin Dashboard"
+  document.title = "Arweave Permafeeds"
   next()
 })
 

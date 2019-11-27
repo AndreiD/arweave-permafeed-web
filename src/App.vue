@@ -1,16 +1,6 @@
 <template>
   <v-app>
     <v-navigation-drawer dark mobile-break-point="800" width="240" app v-model="drawer">
-      <v-list>
-        <v-list-tile avatar>
-          <v-list-tile-avatar>
-            <img src="./assets/logo.png" />
-          </v-list-tile-avatar>
-          <v-list-tile-content>
-            <v-list-tile-title class="font-weight-bold">Jon Snow</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
       <v-list two-line>
         <v-list-tile v-for="(item, index) in items" :key="index" :to="item.path">
           <v-list-tile-action>
@@ -25,8 +15,8 @@
     <v-toolbar flat fixed app>
       <v-toolbar-side-icon @click="drawer = !drawer;"></v-toolbar-side-icon>
       <v-toolbar-title>
-        <span class="font-weight-bold">Sqoodle</span>
-        <span class="grey--text">&nbsp;Admin</span>
+        <span class="font-weight-bold">Arweave</span>
+        <span class="grey--text">&nbsp;Permafeed Hub</span>
       </v-toolbar-title>
     </v-toolbar>
     <v-content class="mb-4">
@@ -41,7 +31,7 @@
       </v-container>
     </v-content>
     <v-footer class="px-3 d-flex justify-content-between grey--text" app>
-      <span>Copyright Me &copy; 2019 - present</span>
+      <span>Copyright andreid &copy; 2019 - present</span>
     </v-footer>
     <flash-message class="flash-message"></flash-message>
   </v-app>

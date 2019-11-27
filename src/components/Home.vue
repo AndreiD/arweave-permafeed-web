@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-card-title>
-        Sqoodle Users
+        Permafeed Apps
         <v-spacer></v-spacer>
         <v-text-field
           v-model="search"
