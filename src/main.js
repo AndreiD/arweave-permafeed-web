@@ -22,7 +22,7 @@ axios.defaults.baseURL = 'https://arweave.net';
 Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
-  document.title = "Arweave Permafeeds"
+  document.title = "Arweave Permafeed Hub"
   next()
 })
 

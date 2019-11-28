@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from '../src/views/Home'
 import Add from '../src/views/Add.vue'
+import Details from '../src/views/Details.vue'
 import NotFound from '../src/views/NotFound.vue'
 
 Vue.use(Router)
@@ -18,6 +19,11 @@ export const router = new Router({
     path: '/add',
     name: 'add',
     component: Add
+  },
+  {
+    path: '/details/:app',
+    name: 'details',
+    component: Details
   },
   // otherwise redirect to home
   {
