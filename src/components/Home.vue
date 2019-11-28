@@ -114,6 +114,8 @@ export default {
         console.log(error);
         this.flash(error, "error");
       });
+
+    this.loadVotes();
   },
   methods: {
     goTodetail(payload) {
@@ -122,6 +124,58 @@ export default {
     },
     redirectExternal(url) {
       window.open(url, "_target");
+    },
+    async loadVotes() {
+      const queryVotes = {
+        op: "and",
+        expr1: {
+          op: "equals",
+          expr1: "Type",
+          expr2: "vote"
+        },
+        expr2: {
+          op: "equals",
+          expr1: "Vote-For",
+          expr2: "permafeed-hub"
+        }
+      };
+
+      console.log(`fetching all votes...`);
+      const res = await arweave.api.post(`arql`, queryVotes);
+      console.log("finished fetching votes");
+      console.log("res :", res);
+      if (res.data.length == 0) {
+        console.log("no votes detected for this app");
+        return;
+      }
+      var votes = await Promise.all(
+        res.data.map(async id => {
+          let txRow = {};
+          const tx = await arweave.transactions.get(id);
+
+          tx.get("tags").forEach(tag => {
+            let key = tag.get("name", { decode: true, string: true });
+            let value = tag.get("value", { decode: true, string: true });
+            txRow[key.toLowerCase()] = value;
+          });
+
+          txRow["id"] = id;
+          txRow["from"] = await arweave.wallets.ownerToAddress(tx.owner);
+
+          return txRow;
+        })
+      );
+      console.log("votes :", votes);
+      let votesMap = new Map();
+
+      for (let i = 0; i < votes.length; i++) {
+        if (votesMap[votes[i]["app-name"]] === undefined) {
+          votesMap[votes[i]["app-name"]] = 1;
+        } else {
+          votesMap[votes[i]["app-name"]] = votesMap[votes[i]["app-name"]] + 1;
+        }
+      }
+      console.log("votesMap :", votesMap);
     },
     format(date) {
       date = new Date(date * 1000);

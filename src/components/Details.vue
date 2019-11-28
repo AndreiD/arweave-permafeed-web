@@ -2,44 +2,55 @@
   <v-container fluid>
     <v-layout row wrap>
       <v-flex xs12 class>
-        <p class="mt-5 display-2">{{app.title}}</p>
+        <p class="display-2">{{app.title}}</p>
+
+        <p class="headline">
+          {{totalVotes}}
+          <v-icon left>fa-thumbs-up</v-icon>votes
+        </p>
         <p class="mt-5 headline" v-html="this.app.description"></p>
         <p class="mt-5 title">
           Author:
-          <v-btn
-            @click="redirectExternal('https://github.com/'+ this.app.author)"
-            outline
-          >{{this.app.author}}</v-btn>
+          <v-btn @click="redirectExternal('https://github.com/'+ this.app.author)" outline>
+            <v-icon>fa-code-branch</v-icon>
+            {{this.app.author}}
+          </v-btn>
         </p>
         <p class="mt-5 headline">
-          wallet:
+          Wallet:
           <v-chip>{{app.wallet}}</v-chip>
         </p>
         <kbd class="black mt-5" style="text-align: left; padding: 10px">{{codeExample}}</kbd>
-        <div class="mt-5">
-          Vote up:
+        <div class="mt-5 title">
+          Vote this app:
           <v-btn @click="toogleVote = !toogleVote" outline fab color="primary">
             <v-icon>fa-thumbs-up</v-icon>
           </v-btn>
         </div>
 
         <div style="background: #efefef; padding: 20px" class="mt-5" v-show="toogleVote">
-          <p class="headline">You can upvote a permafeed under it's issue in github</p>
-          <p
-            class="body-1"
-          >example, you can upvote this app by clicking the thumb icon under it's post</p>
-          <p style="font-weight:bold">please search the correct app listed under github issues!</p>
-          <p>
-            Click
-            <v-btn
-              @click="redirectExternal('https://github.com/AndreiD/arweave-permafeed-web/issues/1')"
-              outline
-            >HERE</v-btn>to see how you can vote
-          </p>
-          <p>I collect the votes every couple of days and update this list</p>
+          <form @submit.prevent="onSubmit" enctype="multipart/form-data">
+            <p class="mt-1 mb-5 title">Select your arweave wallet to vote this application</p>
+
+            <!-- App-Name  with Type vote -->
+
+            <input accept="application/json" type="file" ref="file" @change="fileSelected" />
+
+            <p
+              v-if="arBalance"
+              class="mt-3 subtitle"
+            >You currently have {{arBalance}} AR Tokens in this wallet</p>
+
+            <div class="fields">
+              <v-btn class="mt-3 primary" @click="voteApp()" style="min-width:300px">Vote this App</v-btn>
+            </div>
+            <div class="message">
+              <h5>{{message}}</h5>
+            </div>
+          </form>
         </div>
 
-        <div class="mt-5">
+        <div class="mt-5 title">
           Tip the author:
           <v-btn @click="toggleTip = !toggleTip" outline fab color="primary">
             <v-icon>fa-dollar-sign</v-icon>
@@ -47,9 +58,9 @@
         </div>
 
         <div style="background: #efefef; padding: 20px" class="dropbox mt-5" v-show="toggleTip">
-          <!--UPLOAD-->
+          <!--FORM TIP AUTHOR-->
           <form @submit.prevent="onSubmit" enctype="multipart/form-data">
-            <p class="mt-1 mb-5 title">Select your arweave wallet</p>
+            <p class="mt-1 mb-5 title">Select your arweave wallet to tip the author</p>
 
             <v-text-field
               style="max-width:200px"
@@ -66,7 +77,7 @@
             >You currently have {{arBalance}} AR Tokens in this wallet</p>
 
             <div class="fields">
-              <v-btn class="mt-3 primary" @click="sendTip()" style="min-width:300px">Submit</v-btn>
+              <v-btn class="mt-3 primary" @click="sendTip()" style="min-width:300px">Tip the author</v-btn>
             </div>
             <div class="message">
               <h5>{{message}}</h5>
@@ -74,7 +85,7 @@
           </form>
         </div>
         <div v-if="txHash">
-          <h2>The author thanks you for your tip! Tx ID: {{txHash}}</h2>
+          <h2>You submitted a transaction with ID: {{txHash}}</h2>
         </div>
       </v-flex>
     </v-layout>
@@ -103,12 +114,15 @@ export default {
       app: null,
       arTipAmount: 0.001,
       file: "",
+      hasAlreadyVoted: false,
+      totalVotes: 0,
+      voteCost: 0.001,
       txHash: null,
       savingWallet: false,
       walletUploaded: false,
       message: "",
       toogleVote: false,
-      toggleTip: true,
+      toggleTip: false,
       arBalance: null,
       size: 300,
       userWallet: null
@@ -123,6 +137,7 @@ export default {
   created() {
     this.app = JSON.parse(window.localStorage.getItem("selected_app"));
     this.txHash = null;
+    this.loadVotesForApp();
   },
   methods: {
     async fileSelected(e) {
@@ -146,6 +161,60 @@ export default {
       });
       filereader.readAsText(e.target.files[0]);
     },
+    async loadVotesForApp() {
+      const that = this;
+      const queryVotes = {
+        op: "and",
+        expr1: {
+          op: "equals",
+          expr1: "App-Name",
+          expr2: this.app.title
+        },
+        expr2: {
+          op: "equals",
+          expr1: "Type",
+          expr2: "vote"
+        },
+        expr3: {
+          op: "equals",
+          expr1: "Vote-For",
+          expr2: "permafeed-hub"
+        }
+      };
+
+      console.log(`fetching all votes...`);
+      const res = await arweave.api.post(`arql`, queryVotes);
+      console.log("finished fetching votes");
+      console.log("res :", res);
+      if (res.data.length == 0) {
+        console.log("no votes detected for this app");
+        return;
+      }
+      var votes = await Promise.all(
+        res.data.map(async id => {
+          let txRow = {};
+          const tx = await arweave.transactions.get(id);
+
+          tx.get("tags").forEach(tag => {
+            let key = tag.get("name", { decode: true, string: true });
+            let value = tag.get("value", { decode: true, string: true });
+            txRow[key.toLowerCase()] = value;
+          });
+
+          txRow["id"] = id;
+          txRow["from"] = await arweave.wallets.ownerToAddress(tx.owner);
+
+          return txRow;
+        })
+      );
+      that.totalVotes = votes.length;
+
+      for (let i = 0; i < votes.length; i++) {
+        if (votes[i]["app-name"] === that.app.title) && (votes[i]["from"] === that.awxx) {
+          that.hasAlreadyVoted = true;
+        }
+      }
+    },
     async displayWalletBalance() {
       const that = this;
       arweave.wallets.jwkToAddress(this.userWallet).then(address => {
@@ -155,13 +224,42 @@ export default {
         });
       });
     },
-    async sendTip() {
-      if (this.arTipAmount > this.arBalance) {
-        this.flash("you don't have enough funds to tip this user", "error");
-        return;
-      }
+    async voteApp() {
       if (!this.userWallet) {
         this.flash("you need first to select a wallet", "error");
+        return;
+      }
+      if (this.arTipAmount > 0.001) {
+        this.flash("you don't have enough funds to vote for this app", "error");
+        return;
+      }
+
+      const that = this;
+      console.log("preparing to vote app....");
+
+      const tx = await arweave.createTransaction(
+        { data: "voteup" },
+        that.userWallet
+      );
+
+      tx.addTag("Vote-For", "permafeed-hub");
+      tx.addTag("App-Name", that.app.title);
+      tx.addTag("Type", "vote");
+
+      await arweave.transactions.sign(tx, that.userWallet);
+      console.log(tx.id);
+      const response = await arweave.transactions.post(tx);
+      var resp = response.status === 200 ? response.config.data : null;
+      var respJ = JSON.parse(resp);
+      that.txHash = respJ.id;
+    },
+    async sendTip() {
+      if (!this.userWallet) {
+        this.flash("you need first to select a wallet", "error");
+        return;
+      }
+      if (this.arTipAmount > this.arBalance) {
+        this.flash("you don't have enough funds to tip this user", "error");
         return;
       }
       const that = this;
