@@ -117,7 +117,8 @@ export default {
   },
   methods: {
     goTodetail(payload) {
-      this.$router.push({ name: "details", params: { app: payload } });
+      window.localStorage.setItem("selected_app", JSON.stringify(payload));
+      this.$router.push("details");
     },
     redirectExternal(url) {
       window.open(url, "_target");

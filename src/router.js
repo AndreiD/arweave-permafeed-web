@@ -21,7 +21,7 @@ export const router = new Router({
     component: Add
   },
   {
-    path: '/details/:app',
+    path: '/details',
     name: 'details',
     component: Details
   },
