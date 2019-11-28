@@ -30,7 +30,7 @@
                 <span class="title ma-3">{{ props.item.votes }}</span>
               </td>
               <td class="text-xs-left">
-                <v-btn @click="goTodetail(props.item)" outline small>{{ props.item.title }}</v-btn>
+                <v-btn outline small>{{ props.item.title }}</v-btn>
               </td>
               <td class="text-xs-left" v-html="props.item.description"></td>
               <td class="text-xs-left">{{ props.item.author }}</td>
