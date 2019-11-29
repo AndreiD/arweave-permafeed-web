@@ -27,7 +27,7 @@
           <template slot="items" slot-scope="props">
             <tr @click="goTodetail(props.item)">
               <td class="text-xs-left">
-                <span class="title ma-3">{{ props.item.votes }}</span>
+                <span class="title ma-3" v-if="allVotesMap">{{ allVotesMap[props.item.title] }}</span>
               </td>
               <td class="text-xs-left">
                 <v-btn outline small>{{ props.item.title }}</v-btn>
@@ -68,6 +68,7 @@ export default {
     return {
       search: "",
       token: "",
+      allVotesMap: null,
       isLoading: true,
       apps: [],
       headers: [
@@ -166,7 +167,7 @@ export default {
         })
       );
       console.log("votes :", votes);
-      let votesMap = new Map();
+      var votesMap = new Map();
 
       for (let i = 0; i < votes.length; i++) {
         if (votesMap[votes[i]["app-name"]] === undefined) {
@@ -176,6 +177,7 @@ export default {
         }
       }
       console.log("votesMap :", votesMap);
+      this.allVotesMap = votesMap;
     },
     format(date) {
       date = new Date(date * 1000);
