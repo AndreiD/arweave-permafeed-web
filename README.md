@@ -1,24 +1,21 @@
-# permafeedhubarweave
+# :bridge_at_night: Arweave Permafeed Hub
 
-## Project setup
-```
-npm install
-```
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/AndreiD/arweave-ipfs-bridge/blob/master/LICENSE)
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Permafeeds are data streams you can trust: Transparent, decentralized, and open.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+<p align="center">
+  <p align="center">Click on the image to enlarge it</p>
+   <img alt="how it looks" height="500" src="https://raw.githubusercontent.com/AndreiD/arweave-ipfs-bridge/master/assets/postman_example.png">
+ </p>
 
-### Lints and fixes files
-```
-npm run lint
-```
+### TODO://
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- [] comments
+- [ ] awaiting your idea
+
+
+
+## License
+
+MIT license.
