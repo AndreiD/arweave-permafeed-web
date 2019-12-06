@@ -8,7 +8,7 @@ Permafeeds are data streams you can trust: Transparent, decentralized, and open.
 
 <p align="center">
   <p align="center">Click on the image to enlarge it</p>
-   <img alt="how it looks" width="600" src="https://raw.githubusercontent.com/AndreiD/arweave-permafeed-web/master/assets/example.png">
+   <img alt="how it looks" width="auto" src="https://raw.githubusercontent.com/AndreiD/arweave-permafeed-web/master/assets/example.png">
  </p>
 
 ### How it works
