@@ -27,7 +27,7 @@
           <template slot="items" slot-scope="props">
             <tr @click="goTodetail(props.item)">
               <td class="text-xs-left">
-                <span class="title ma-3" v-if="allVotesMap">{{ allVotesMap[props.item.title] }}</span>
+                <kbd class="title pa-1" v-if="allVotesMap">{{ allVotesMap[props.item.title] }}</kbd>
               </td>
               <td class="text-xs-left">
                 <v-btn outline small>{{ props.item.title }}</v-btn>
@@ -35,7 +35,6 @@
               <td class="text-xs-left" v-html="props.item.description"></td>
               <td class="text-xs-left">{{ props.item.author }}</td>
               <td class="text-xs-left">{{ props.item.wallet.substring(0, 8)+"..." }}</td>
-              <td class="text-xs-left">{{ props.item.code_example.substring(0, 8)+"..." }}</td>
             </tr>
           </template>
 
@@ -81,8 +80,7 @@ export default {
         { text: "Title", align: "left", value: "title" },
         { text: "Description", align: "left", value: "description" },
         { text: "Author", align: "left", value: "author" },
-        { text: "Wallet", align: "left", value: "wallet" },
-        { text: "Code Example", align: "left", value: "code_example" }
+        { text: "Wallet", align: "left", value: "wallet" }
       ]
     };
   },
