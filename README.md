@@ -4,7 +4,7 @@
 
 Permafeeds are data streams you can trust: Transparent, decentralized, and open.
 
-### -> <a href="https://arweave.net/Q5sm7OQKpsmAxWd4rC4T1d5Hq_ifrE7jkde5QGf58u4">https://arweave.net/Q5sm7OQKpsmAxWd4rC4T1d5Hq_ifrE7jkde5QGf58u4</a>
+### :arrow: <a href="https://arweave.net/Q5sm7OQKpsmAxWd4rC4T1d5Hq_ifrE7jkde5QGf58u4">https://arweave.net/Q5sm7OQKpsmAxWd4rC4T1d5Hq_ifrE7jkde5QGf58u4</a>
 
 <p align="center">
   <p align="center">Click on the image to enlarge it</p>
