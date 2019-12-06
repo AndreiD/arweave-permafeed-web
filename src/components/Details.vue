@@ -29,6 +29,16 @@ bra
             Vote up:
             <v-icon class="ma-1">fa-thumbs-up</v-icon>
           </v-btn>
+
+          <v-btn @click="toggleTip = !toggleTip" outline color="primary">
+            Tip the author
+            <v-icon class="ma-1">fa-coins</v-icon>
+          </v-btn>
+
+          <v-btn @click="toggleComments = !toggleComments" outline color="primary">
+            Leave a comment
+            <v-icon class="ma-1">fa-envelope</v-icon>
+          </v-btn>
         </div>
 
         <div style="background: #efefef; padding: 20px" class="dropbox mt-5" v-show="toogleVote">
@@ -41,7 +51,7 @@ bra
             <p
               v-if="arBalance"
               class="mt-3 subtitle"
-            >You currently have {{arBalance}} AR Tokens in this wallet</p>
+            >You currently have {{arBalance}} AR Tokens in the selected wallet</p>
 
             <div class="fields">
               <v-btn
@@ -51,13 +61,6 @@ bra
               >Vote this application</v-btn>
             </div>
           </form>
-        </div>
-
-        <div class="mt-5 title">
-          <v-btn @click="toggleTip = !toggleTip" outline color="primary">
-            Tip the author
-            <v-icon class="ma-1">fa-coins</v-icon>
-          </v-btn>
         </div>
 
         <div style="background: #efefef; padding: 20px" class="dropbox mt-5" v-show="toggleTip">
@@ -77,18 +80,78 @@ bra
             <p
               v-if="arBalance"
               class="mt-3 subtitle"
-            >You currently have {{arBalance}} AR Tokens in this wallet</p>
+            >You currently have {{arBalance}} AR Tokens in the selected wallet</p>
 
             <div class="fields">
               <v-btn class="mt-3 primary" @click="sendTip()" style="min-width:300px">Tip the author</v-btn>
             </div>
-            <div class="message">
-              <h5>{{message}}</h5>
+          </form>
+        </div>
+
+        <div
+          style="background: #efefef; padding: 20px"
+          class="dropbox mt-5"
+          v-show="toggleComments"
+        >
+          <!--TIP AUTHOR-->
+          <form @submit.prevent="onSubmit" enctype="multipart/form-data">
+            <p class="mt-1 mb-5 title">Select your arweave wallet to comment</p>
+
+            <v-textarea style="max-width:200px" class="mt-5 mb-5" v-model="comment" label="Comment"></v-textarea>
+
+            <input accept="application/json" type="file" ref="file" @change="fileSelected" />
+
+            <p
+              v-if="arBalance"
+              class="mt-3 subtitle"
+            >You currently have {{arBalance}} AR Tokens in the selected wallet</p>
+
+            <div class="fields">
+              <v-btn
+                class="mt-3 primary"
+                @click="leaveComment()"
+                style="min-width:300px"
+              >Leave a comment</v-btn>
             </div>
           </form>
         </div>
+
         <div v-if="txHash">
-          <h2>The author thanks you for your tip! Tx ID: {{txHash}}</h2>
+          <h2>You just sent a transaction with ID: {{txHash}}</h2>
+        </div>
+
+        <div class="mt-5" v-if="commentsList">
+          <v-card>
+            <v-card-title>
+              Comments
+              <v-spacer></v-spacer>
+            </v-card-title>
+
+            <v-card-text class="pb-0">
+              <v-data-table
+                :items="commentsList"
+                :loading="isCommentsLoading"
+                item-key="id"
+                :disable-initial-sort="true"
+                :rows-per-page-items="[100,200,500]"
+              >
+                <v-progress-linear v-slot:progress color="blue" indeterminate></v-progress-linear>
+                <template slot="items" slot-scope="props">
+                  <tr @click="goTodetail(props.item)">
+                    <td class="text-xs-left">
+                      <p class="mt-1 body-1">{{ props.item.comment.replace(/['"]+/g, '') }}</p>
+                      <p class="caption">by {{props.item.from}} at {{format(props.item.time)}}</p>
+                    </td>
+                  </tr>
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-card>
+        </div>
+
+        <div class="ma-5 pa-5" v-if="!commentsList">
+          There are no comments on this app.
+          <v-btn @click="toggleComments = !toggleComments" flat>Be the first to write one!</v-btn>
         </div>
       </v-flex>
     </v-layout>
@@ -121,9 +184,12 @@ export default {
       allVotesMap: null,
       savingWallet: false,
       walletUploaded: false,
-      message: "",
       toogleVote: false,
+      toggleComments: false,
+      comment: null,
+      commentsList: null,
       toggleTip: false,
+      isCommentsLoading: false,
       arBalance: null,
       setVoters: null,
       userWallet: null,
@@ -140,6 +206,7 @@ export default {
     this.app = JSON.parse(window.localStorage.getItem("selected_app"));
     this.txHash = null;
     this.loadVotes();
+    this.loadComments();
   },
   methods: {
     async fileSelected(e) {
@@ -222,17 +289,49 @@ export default {
       let transaction = await arweave.createTransaction(
         {
           target: that.app.wallet,
-          quantity: arweave.ar.arToWinston(this.arTipAmount)
+          quantity: arweave.ar.arToWinston((this.arTipAmount * 75) / 100),
+          reward: arweave.ar.arToWinston((this.arTipAmount * 25) / 100)
         },
         that.userWallet
       );
-      transaction.addTag("type", "permafeed_author_tip");
+      transaction.addTag("App-Name", this.app.title);
+      transaction.addTag("Type", "permafeed_author_tip");
       await arweave.transactions.sign(transaction, that.userWallet);
 
       const response = await arweave.transactions.post(transaction);
       var resp = response.status === 200 ? response.config.data : null;
       var respJ = JSON.parse(resp);
       that.txHash = respJ.id;
+    },
+    async leaveComment() {
+      if (!this.userWallet) {
+        this.flash("you need first to select a wallet", "error");
+        return;
+      }
+      if (this.arBalance < 0.001) {
+        this.flash("you don't have enough funds to leave a comment", "error");
+        return;
+      }
+      if (this.comment == null) {
+        this.flash("please fill the comment with some text...", "error");
+        return;
+      }
+
+      let tx = await arweave.createTransaction(
+        { data: JSON.stringify(this.comment) },
+        this.userWallet
+      );
+
+      tx.addTag("App-Name", this.app.title);
+      tx.addTag("Time", new Date().getTime());
+      tx.addTag("Type", "permafeed-hub-comment");
+
+      await arweave.transactions.sign(tx, this.userWallet);
+
+      const response = await arweave.transactions.post(tx);
+      var resp = response.status === 200 ? response.config.data : null;
+      var respJ = JSON.parse(resp);
+      this.txHash = respJ.id;
     },
     async loadVotes() {
       const queryVotes = {
@@ -249,10 +348,7 @@ export default {
         }
       };
 
-      console.log(`fetching all votes...`);
       const res = await arweave.api.post(`arql`, queryVotes);
-      console.log("finished fetching votes");
-      console.log("res :", res);
       if (res.data.length == 0) {
         console.log("no votes detected for this app");
         return;
@@ -263,7 +359,6 @@ export default {
         res.data.map(async id => {
           let txRow = {};
           const tx = await arweave.transactions.get(id);
-
           tx.get("tags").forEach(tag => {
             let key = tag.get("name", { decode: true, string: true });
             let value = tag.get("value", { decode: true, string: true });
@@ -273,12 +368,9 @@ export default {
           txRow["id"] = id;
           txRow["from"] = await arweave.wallets.ownerToAddress(tx.owner);
 
-          this.setVoters.add(txRow["from"]);
-
           return txRow;
         })
       );
-      console.log("votes :", votes);
       var votesMap = new Map();
 
       for (let i = 0; i < votes.length; i++) {
@@ -293,6 +385,60 @@ export default {
     },
     redirectExternal(url) {
       window.open(url, "_target");
+    },
+    format(date) {
+      date = new Date(date * 1);
+      const day = `${date.getUTCDate()}`.padStart(2, "0");
+      const month = `${date.getUTCMonth() + 1}`.padStart(2, "0");
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    },
+    async loadComments() {
+      const queryComments = {
+        op: "and",
+        expr1: {
+          op: "equals",
+          expr1: "Type",
+          expr2: "permafeed-hub-comment"
+        },
+        expr2: {
+          op: "equals",
+          expr1: "App-Name",
+          expr2: this.app.title
+        }
+      };
+      this.isCommentsLoading = true;
+
+      const res = await arweave.api.post(`arql`, queryComments);
+      if (res.data.length == 0) {
+        console.log("no comments detected for this app");
+        return;
+      }
+      var comments = await Promise.all(
+        res.data.map(async id => {
+          let txRow = {};
+          const tx = await arweave.transactions.get(id);
+
+          const comment = tx.get("data", {
+            decode: true,
+            string: true
+          });
+
+          tx.get("tags").forEach(tag => {
+            let key = tag.get("name", { decode: true, string: true });
+            let value = tag.get("value", { decode: true, string: true });
+            txRow[key.toLowerCase()] = value;
+          });
+
+          txRow["id"] = id;
+          txRow["from"] = await arweave.wallets.ownerToAddress(tx.owner);
+          txRow["comment"] = comment;
+
+          return txRow;
+        })
+      );
+      this.isCommentsLoading = false;
+      this.commentsList = comments;
     }
   }
 };

@@ -139,10 +139,7 @@ export default {
         }
       };
 
-      console.log(`fetching all votes...`);
       const res = await arweave.api.post(`arql`, queryVotes);
-      console.log("finished fetching votes");
-      console.log("res :", res);
       if (res.data.length == 0) {
         console.log("no votes detected for this app");
         return;
@@ -164,7 +161,6 @@ export default {
           return txRow;
         })
       );
-      console.log("votes :", votes);
       var votesMap = new Map();
 
       for (let i = 0; i < votes.length; i++) {
@@ -174,7 +170,6 @@ export default {
           votesMap[votes[i]["app-name"]] = votesMap[votes[i]["app-name"]] + 1;
         }
       }
-      console.log("votesMap :", votesMap);
       this.allVotesMap = votesMap;
     },
     format(date) {
