@@ -17,6 +17,16 @@ Permafeeds are data streams you can trust: Transparent, decentralized, and open.
 - you can tip the author but 25% will go to the miners
 - comments are not moderated (should they be ?)
 
+### Build it yourself
+
+app is build with Vue.js (actually Nuxt.js to be exact)
+after you run `npm run build` go to dist folder and remove the "/" that are before the js and css scripts.
+after that run from the base directory
+
+```
+arweave deploy-dir dist --key-file /PATH_TO_YOUR/arweave-wallet.json
+```
+
 ### TODO://
 
 - [ ] blacklist spam comments
