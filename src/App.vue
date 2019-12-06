@@ -59,6 +59,11 @@ export default {
       ],
       right: null
     };
+  },
+  created() {
+    this.$router.push({
+      path: "/"
+    });
   }
 };
 </script>
